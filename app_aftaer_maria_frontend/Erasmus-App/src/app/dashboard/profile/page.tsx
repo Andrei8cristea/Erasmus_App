@@ -1,1 +1,5 @@
-// This page has been removed as per user request.
+import { redirect } from "next/navigation";
+
+export default function ProfilePage() {
+  redirect("/dashboard");
+}

@@ -217,7 +217,7 @@ export default function OrganizationsPage() {
 
   // Get unique locations for filter
   const uniqueLocations = useMemo(() => {
-    const locs = Array.from(new Set(organizations.map(o => o.location).filter(Boolean)))
+    const locs = Array.from(new Set(organizations.map(o => o.location).filter((l): l is string => Boolean(l))))
     return locs.sort()
   }, [organizations])
 

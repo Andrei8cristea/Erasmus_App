@@ -122,8 +122,8 @@ export default function EventsPage() {
       setEvents(eventsWithOrgName)
 
       // Dynamic Filter Options
-      setCategories([...new Set(eventsWithOrgName.map((event: Event) => event.category).filter((c): c is string => !!c))])
-      setAvailableCountries([...new Set(eventsWithOrgName.map((event: Event) => event.country).filter((c): c is string => !!c))].sort())
+      setCategories(Array.from(new Set<string>(eventsWithOrgName.map((event: Event) => event.category).filter((c: any): c is string => !!c))))
+      setAvailableCountries(Array.from(new Set<string>(eventsWithOrgName.map((event: Event) => event.country).filter((c: any): c is string => !!c))).sort())
 
     } catch (error) {
       setEvents([])
@@ -463,7 +463,7 @@ export default function EventsPage() {
                   className="bg-white/80 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-xl border border-white/50 flex flex-col items-center text-center group hover:bg-white transition-all hover:-translate-y-1"
                 >
                   <div className={`p-3 rounded-2xl bg-gray-50 mb-3 group-hover:scale-110 transition-transform ${stat.color}`}>
-                    {/* @ts-ignore */}
+
                     <stat.icon className="w-6 h-6" />
                   </div>
                   <span className="text-3xl font-black text-[#003399] tracking-tighter mb-1">{stat.value}</span>

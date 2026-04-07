@@ -1,7 +1,11 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('[Supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Supabase client will not function until env vars are set.')
+}
 
 // Supabase-related storage keys
 const AUTH_KEYS = ['supabase.auth.token', 'sb-', 'auth-token', 'supabase']
@@ -103,6 +107,35 @@ let supabaseInstance: any = null
 function createSupabaseClient() {
   // Return the existing instance if we're in the browser to avoid multiple client issues
   if (typeof window !== 'undefined' && supabaseInstance) return supabaseInstance
+
+  // During build-time static generation, env vars may not be available
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('[Supabase] Skipping client creation — env vars not set (build-time)')
+    // Return a dummy client that won't crash during static page generation
+    const dummyClient = {
+      from: () => ({
+        select: () => ({ data: null, error: null, eq: () => ({ data: null, error: null, single: () => ({ data: null, error: null }), gte: () => ({ order: () => ({ data: null, error: null }) }), in: () => ({ data: null, error: null }) }), order: () => ({ data: null, error: null }), single: () => ({ data: null, error: null }) }),
+        insert: () => ({ data: null, error: null }),
+        update: () => ({ data: null, error: null, eq: () => ({ data: null, error: null }) }),
+        delete: () => ({ data: null, error: null, eq: () => ({ data: null, error: null }) }),
+      }),
+      auth: {
+        getSession: async () => ({ data: { session: null }, error: null }),
+        getUser: async () => ({ data: { user: null }, error: null }),
+        signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        signUp: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        signOut: async () => ({ error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      },
+      storage: {
+        from: () => ({
+          upload: async () => ({ data: null, error: null }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        }),
+      },
+    }
+    return dummyClient as any
+  }
 
   try {
     const client = createBrowserClient(supabaseUrl, supabaseAnonKey, {
